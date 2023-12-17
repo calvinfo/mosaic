@@ -3,6 +3,10 @@ import { Catalog } from './Catalog.js';
 import { FilterGroup } from './FilterGroup.js';
 import { QueryManager, Priority } from './QueryManager.js';
 import { voidLogger } from './util/void-logger.js';
+import { Manager } from './Manager.js';
+import { Logger } from './Logger.js';
+import { MosaicClient } from './MosaicClient.js';
+import { Selection } from './Selection';
 
 let _instance;
 
@@ -12,7 +16,7 @@ let _instance;
  * @param {Coordinator} instance the coordinator instance to set
  * @returns {Coordinator} the coordinator instance
  */
-export function coordinator(instance) {
+export function coordinator(instance?: Coordinator) {
   if (instance) {
     _instance = instance;
   } else if (_instance == null) {
@@ -22,7 +26,20 @@ export function coordinator(instance) {
 }
 
 export class Coordinator {
-  constructor(db = socketConnector(), options = {}) {
+  catalog: Catalog;
+  manager: Manager;
+  _logger: Logger;
+  indexes: boolean;
+  clients: Set<MosaicClient>;
+  filterGroups: Map<Selection, FilterGroup>;
+
+  constructor(db = socketConnector(), options: {
+    manager?: Manager
+    logger?: Logger
+    cache?: boolean;
+    consolidate?: boolean;
+    indexes?: boolean;
+  } = {}) {
     this.catalog = new Catalog(this);
     this.manager = options.manager || QueryManager();
     this.logger(options.logger || console);
@@ -31,7 +48,7 @@ export class Coordinator {
     this.clear();
   }
 
-  logger(logger) {
+  logger(logger: Logger) {
     if (arguments.length) {
       this._logger = logger || voidLogger();
       this.manager.logger(this._logger);
@@ -53,7 +70,7 @@ export class Coordinator {
       this.clients = new Set;
       this.filterGroups = new Map;
     }
-    if (cache) this.manager.cache().clear();
+    if (cache) this.manager.cache()!.clear();
     if (catalog) this.catalog.clear();
   }
 
@@ -76,7 +93,12 @@ export class Coordinator {
     cache = true,
     priority = Priority.Normal,
     ...options
-  } = {}) {
+  }: {
+    type?: 'arrow';
+    cache?: boolean;
+    priority?: Priority;
+    persist?: boolean;
+  }) {
     return this.manager.request({ type, query, cache, options }, priority);
   }
 
@@ -96,7 +118,7 @@ export class Coordinator {
 
   // -- Client Management ----
 
-  updateClient(client, query, priority = Priority.Normal) {
+  updateClient(client: MosaicClient, query, priority = Priority.Normal) {
     client.queryPending();
     return this.query(query, { priority }).then(
       data => client.queryResult(data).update(),
@@ -104,8 +126,8 @@ export class Coordinator {
     );
   }
 
-  requestQuery(client, query) {
-    this.filterGroups.get(client.filterBy)?.reset();
+  requestQuery(client: MosaicClient, query) {
+    if (client.filterBy) this.filterGroups.get(client.filterBy!)?.reset();
     return query
       ? this.updateClient(client, query)
       : client.update();
@@ -116,7 +138,7 @@ export class Coordinator {
    *
    * @param {import('./MosaicClient.js').MosaicClient} client the client to disconnect
    */
-  async connect(client) {
+  async connect(client: MosaicClient) {
     const { catalog, clients, filterGroups, indexes } = this;
 
     if (clients.has(client)) {
@@ -134,7 +156,7 @@ export class Coordinator {
     const filter = client.filterBy;
     if (filter) {
       if (filterGroups.has(filter)) {
-        filterGroups.get(filter).add(client);
+        filterGroups.get(filter)!.add(client);
       } else {
         const group = new FilterGroup(this, filter, indexes);
         filterGroups.set(filter, group.add(client));

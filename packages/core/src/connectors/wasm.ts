@@ -1,4 +1,5 @@
 import * as duckdb from '@duckdb/duckdb-wasm';
+import { Query } from './query';
 
 export async function wasmConnector(options) {
   const db = await initDatabase(options);
@@ -7,9 +8,9 @@ export async function wasmConnector(options) {
   return {
     db,
     con,
-    query: async query => {
+    query: async (query: Query) => {
       const { type, sql } = query;
-      const result = await con.query(sql);
+      const result = await con.query(sql!);
       return type === 'exec' ? undefined
         : type === 'arrow' ? result
         : Array.from(result);

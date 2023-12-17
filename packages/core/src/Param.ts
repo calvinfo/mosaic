@@ -1,5 +1,5 @@
-import { AsyncDispatch } from './util/AsyncDispatch.js';
-import { distinct } from './util/distinct.js';
+import { AsyncDispatch } from './util/AsyncDispatch';
+import { distinct } from './util/distinct';
 
 /**
  * Test if a value is a Param instance.
@@ -15,12 +15,13 @@ export function isParam(x) {
  * upon parameter changes.
  */
 export class Param extends AsyncDispatch {
+  _value?: any;
 
   /**
    * Create a new Param instance.
    * @param {*} value The initial value of the Param.
    */
-  constructor(value) {
+  constructor(value?: any) {
     super();
     this._value = value;
   }
@@ -66,7 +67,7 @@ export class Param extends AsyncDispatch {
    *  should emit a 'value' event even if the internal value is unchanged.
    * @returns {this} This Param instance.
    */
-  update(value, { force } = {}) {
+  update(value: any, { force }: { force?: boolean; } = {}) {
     const shouldEmit = distinct(this._value, value) || force;
     if (shouldEmit) {
       this.emit('value', value);

@@ -1,17 +1,22 @@
-import { coordinator } from './Coordinator.js';
-import { throttle } from './util/throttle.js';
+import { coordinator } from './Coordinator';
+import { Selection } from './Selection';
+import { throttle } from './util/throttle';
 
 /**
  * Base class for Mosaic clients.
  */
 export class MosaicClient {
+  _filterBy?: Selection;
+  _requestUpdate: (event: any) => void;
+
+
   /**
    * Constructor.
    * @param {*} filterSelection An optional selection to interactively filter
    *  this client's data. If provided, a coordinator will re-query and update
    *  the client when the selection updates.
    */
-  constructor(filterSelection) {
+  constructor(filterSelection?: Selection) {
     this._filterBy = filterSelection;
     this._requestUpdate = throttle(() => this.requestQuery(), true);
   }
@@ -35,7 +40,7 @@ export class MosaicClient {
   /**
    * Return an array of fields queried by this client.
    */
-  fields() {
+  fields(): any[] | null {
     return null;
   }
 
@@ -43,14 +48,14 @@ export class MosaicClient {
    * Called by the coordinator to set the field info for this client.
    * @returns {this}
    */
-  fieldInfo() {
+  fieldInfo(info: any) {
     return this;
   }
 
   /**
    * Return a query specifying the data needed by this client.
    */
-  query() {
+  query(predicate: any) {
     return null;
   }
 
@@ -67,7 +72,7 @@ export class MosaicClient {
    * @param {*} data the query result
    * @returns {this}
    */
-  queryResult() {
+  queryResult(data: any) {
     return this;
   }
 
@@ -84,7 +89,7 @@ export class MosaicClient {
    * If an explicit query is not provided, the client query method will
    * be called, filtered by the current filterBy selection.
    */
-  requestQuery(query) {
+  requestQuery(query?: string) {
     const q = query || this.query(this.filterBy?.predicate(this));
     return coordinator().requestQuery(this, q);
   }

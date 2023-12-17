@@ -1,5 +1,7 @@
 import { Query, and, asColumn, create, epoch_ms, isBetween, sql } from '@uwdata/mosaic-sql';
 import { fnv_hash } from './util/hash.js';
+import { Coordinator } from './Coordinator.js';
+import { Selection } from './Selection.js';
 
 const identity = x => x;
 
@@ -15,12 +17,20 @@ const identity = x => x;
  * for an interval or point value predicate.
  */
 export class DataCubeIndexer {
+  mc: Coordinator;
+  selection?: Selection;
+  temp: boolean;
+  enabled: boolean;
+  clients: any;
+  indices: Map<>;
+  activeView: any;
+
   /**
    *
    * @param {import('./Coordinator.js').Coordinator} mc a Mosaic coordinator
    * @param {*} options Options hash to configure the data cube indexes and pass selections to the coordinator.
    */
-  constructor(mc, { selection, temp = true }) {
+  constructor(mc, { selection, temp = true }: { selection?: Selection, temp: boolean }) {
     /** @type import('./Coordinator.js').Coordinator */
     this.mc = mc;
     this.selection = selection;

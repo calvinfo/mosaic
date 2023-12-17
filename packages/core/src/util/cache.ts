@@ -2,21 +2,27 @@ const requestIdle = typeof requestIdleCallback !== 'undefined'
   ? requestIdleCallback
   : setTimeout;
 
-export const voidCache = () => ({
+export interface Cache<K, V> {
+  get: (key: any) => any;
+  set: (key: K, value: V) => V;
+  clear: () => void;
+}
+
+export const voidCache = <K, V>() => ({
   get: () => undefined,
-  set: (key, value) => value,
+  set: (key: K, value: V) => value,
   clear: () => {}
 });
 
-export function lruCache({
+export function lruCache<K, V>({
   max = 1000, // max entries
   ttl = 3 * 60 * 60 * 1000 // time-to-live, default 3 hours
 } = {}) {
-  let cache = new Map;
+  let cache = new Map<K, { value: V, last: number }>();
 
   function evict() {
     const expire = performance.now() - ttl;
-    let lruKey = null;
+    let lruKey: K | null = null;
     let lruLast = Infinity;
 
     for (const [key, value] of cache) {
@@ -41,14 +47,14 @@ export function lruCache({
   }
 
   return {
-    get(key) {
+    get(key: K) {
       const entry = cache.get(key);
       if (entry) {
         entry.last = performance.now();
         return entry.value;
       }
     },
-    set(key, value) {
+    set(key: K, value: V) {
       cache.set(key, { last: performance.now(), value });
       if (cache.size > max) requestIdle(evict);
       return value;

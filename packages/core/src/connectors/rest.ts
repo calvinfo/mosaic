@@ -1,8 +1,9 @@
 import { tableFromIPC } from 'apache-arrow';
+import { Query } from './query';
 
 export function restConnector(uri = 'http://localhost:3000/') {
   return {
-    async query(query) {
+    async query(query: Query) {
       const req = fetch(uri, {
         method: 'POST',
         mode: 'cors',

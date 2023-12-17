@@ -1,3 +1,11 @@
+type AsyncDispatchCallback = (value: any) => Promise<any>
+
+type DispatchHandler = {
+  callbacks: Set<AsyncDispatchCallback>;
+  pending: Promise<any[]> | null;
+  queue: DispatchQueue;
+}
+
 /**
  * Event dispatcher supporting asynchronous updates.
  * If an event handler callback returns a Promise, this dispatcher will
@@ -6,11 +14,13 @@
  */
 export class AsyncDispatch {
 
+  _callbacks: Map<string, DispatchHandler>
+
   /**
    * Create a new asynchronous dispatcher instance.
    */
   constructor() {
-    this._callbacks = new Map;
+    this._callbacks = new Map<string, DispatchHandler>;
   }
 
   /**
@@ -20,7 +30,7 @@ export class AsyncDispatch {
    *  callback function to add. If the callback has already been
    *  added for the event type, this method has no effect.
    */
-  addEventListener(type, callback) {
+  addEventListener(type: string, callback: AsyncDispatchCallback) {
     if (!this._callbacks.has(type)) {
       this._callbacks.set(type, {
         callbacks: new Set,
@@ -29,7 +39,7 @@ export class AsyncDispatch {
       });
     }
     const entry = this._callbacks.get(type);
-    entry.callbacks.add(callback);
+    entry!.callbacks.add(callback);
   }
 
   /**
@@ -54,7 +64,7 @@ export class AsyncDispatch {
    * @param {*} value The event value.
    * @returns The (possibly transformed) event value to emit.
    */
-  willEmit(type, value) {
+  willEmit(type: string, value: any) {
     return value;
   }
 
@@ -68,7 +78,7 @@ export class AsyncDispatch {
    * @returns {(value: *) => boolean|null} A dispatch queue filter
    *  function, or null if all unemitted event values should be filtered.
    */
-  emitQueueFilter() {
+  emitQueueFilter(type: string, value: any) {
     // removes all pending items
     return null;
   }
@@ -91,23 +101,24 @@ export class AsyncDispatch {
    * @param {string} type The event type.
    * @param {*} value The event value.
    */
-  emit(type, value) {
-    const entry = this._callbacks.get(type) || {};
+  emit(type: string, value: any) {
+    const entry = this._callbacks.get(type);
+    if (!entry) return;
     if (entry.pending) {
       entry.queue.enqueue(value, this.emitQueueFilter(type, value));
     } else {
       const event = this.willEmit(type, value);
       const { callbacks, queue } = entry;
       if (callbacks?.size) {
-        const promise = Promise
-          .allSettled(Array.from(callbacks, callback => callback(event)))
+        entry.pending = Promise
+          .allSettled(Array.from(callbacks, callback => callback(event)));
+        entry.pending
           .then(() => {
             entry.pending = null;
             if (!queue.isEmpty()) {
               this.emit(type, queue.dequeue());
             }
           });
-        entry.pending = promise;
       }
     }
   }
@@ -117,6 +128,7 @@ export class AsyncDispatch {
  * Queue for managing unemitted event values.
  */
 export class DispatchQueue {
+  next: any;
 
   /**
    * Create a new dispatch queue instance.

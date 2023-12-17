@@ -17,7 +17,7 @@ export const statMap = {
 };
 
 export function summarize({ table, column }, stats) {
-  return Query
-    .from(table)
+  return (Query
+    .from(table) as Query)
     .select(stats.map(s => [s, statMap[s](column)]));
 }

@@ -1,5 +1,5 @@
 import { or } from '@uwdata/mosaic-sql';
-import { Param } from './Param.js';
+import { Param } from './Param';
 
 /**
  * Test if a value is a Selection instance.
@@ -14,6 +14,8 @@ export function isSelection(x) {
  * Represents a dynamic set of query filter predicates.
  */
 export class Selection extends Param {
+  _resolver: SelectionResolver;
+  _resolved?: any;
 
   /**
    * Create a new Selection instance with an
@@ -68,7 +70,7 @@ export class Selection extends Param {
    * @param {SelectionResolver} resolver The selection resolution
    *  strategy to apply.
    */
-  constructor(resolver = new SelectionResolver()) {
+  constructor(resolver = new SelectionResolver({})) {
     super([]);
     this._resolved = this._value;
     this._resolver = resolver;
@@ -172,7 +174,7 @@ export class Selection extends Param {
    * @returns {*} For value-typed events, returns a dispatch queue filter
    *  function. Otherwise returns null.
    */
-  emitQueueFilter(type, value) {
+  emitQueueFilter(type: string, value: any): ((value: any) => boolean | null | undefined) | null {
     return type === 'value'
       ? this._resolver.queueFilter(value)
       : null;
@@ -209,6 +211,9 @@ export class Selection extends Param {
  * Implements selection clause resolution strategies.
  */
 export class SelectionResolver {
+  union: boolean;
+  cross: boolean;
+  single: boolean;
 
   /**
    * Create a new selection resolved instance.
@@ -218,7 +223,11 @@ export class SelectionResolver {
    * @param {boolean} [options.cross=false] Boolean flag to indicate cross-filtering.
    * @param {boolean} [options.single=false] Boolean flag to indicate single clauses only.
    */
-  constructor({ union, cross, single } = {}) {
+  constructor({ union = false, cross = false, single = false }: {
+    union?: boolean;
+    cross?: boolean;
+    single?: boolean;
+  }) {
     this.union = !!union;
     this.cross = !!cross;
     this.single = !!single;
@@ -230,7 +239,7 @@ export class SelectionResolver {
    * @param {*} clause A new selection clause to add.
    * @returns {*[]} An updated array of selection clauses.
    */
-  resolve(clauseList, clause, reset = false) {
+  resolve(clauseList: Clause[], clause: Clause, reset = false) {
     const { source, predicate } = clause;
     const filtered = clauseList.filter(c => source !== c.source);
     const clauses = this.single ? [] : filtered;
@@ -246,7 +255,7 @@ export class SelectionResolver {
    * @param {*} clause The client to test.
    * @returns True if the client should be skipped, false otherwise.
    */
-  skip(client, clause) {
+  skip(client: any, clause: any): boolean {
     return this.cross && clause?.clients?.has(client);
   }
 
@@ -258,7 +267,7 @@ export class SelectionResolver {
    * @returns {*} The query predicate for filtering client data,
    *  based on the current state of this selection.
    */
-  predicate(clauseList, active, client) {
+  predicate(clauseList: any[], active: any, client: any) {
     const { union } = this;
 
     // do nothing if cross-filtering and client is currently active
@@ -280,10 +289,17 @@ export class SelectionResolver {
    * @returns {(value: *) => boolean|null} A dispatch queue filter
    *  function, or null if all unemitted event values should be filtered.
    */
-  queueFilter(value) {
+  queueFilter(value: any) {
     if (this.cross) {
       const source = value.active?.source;
-      return clauses => clauses.active?.source !== source;
+      return (clauses: any): boolean | null | undefined => clauses.active?.source !== source;
     }
+  }
+}
+
+type Clause = {
+  predicate?: any;
+  source?: {
+    reset?: () => void
   }
 }

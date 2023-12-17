@@ -1,9 +1,16 @@
 import { tableFromIPC } from 'apache-arrow';
+import { Query } from './query';
+
+type Request = {
+  query: Query;
+  resolve: (value?: any) => void;
+  reject: (reason: string) => void;
+}
 
 export function socketConnector(uri = 'ws://localhost:3000/') {
-  const queue = [];
+  const queue: Request[] = [];
+  let request: Request | undefined | null = null;
   let connected = false;
-  let request = null;
   let ws;
 
   const events = {
@@ -17,7 +24,8 @@ export function socketConnector(uri = 'ws://localhost:3000/') {
       request = null;
       ws = null;
       while (queue.length) {
-        queue.shift().reject('Socket closed');
+        let req = queue.shift();
+        req?.reject('Socket closed');
       }
     },
 
@@ -73,7 +81,7 @@ export function socketConnector(uri = 'ws://localhost:3000/') {
   function next() {
     if (queue.length) {
       request = queue.shift();
-      ws.send(JSON.stringify(request.query));
+      ws.send(JSON.stringify(request?.query));
     }
   }
 

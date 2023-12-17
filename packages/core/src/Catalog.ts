@@ -1,11 +1,15 @@
 import { asRelation } from '@uwdata/mosaic-sql';
 import { jsType } from './util/js-type.js';
 import { summarize } from './util/summarize.js';
+import { Coordinator } from './Coordinator.js';
 
 const object = () => Object.create(null);
 
 export class Catalog {
-  constructor(coordinator) {
+  mc: Coordinator;
+  tables: { [key: string]: any }
+
+  constructor(coordinator: Coordinator) {
     this.mc = coordinator;
     this.clear();
   }
@@ -14,7 +18,7 @@ export class Catalog {
     this.tables = object();
   }
 
-  tableInfo(table) {
+  tableInfo(table: string) {
     const cache = this.tables;
     if (cache[table]) {
       return cache[table];

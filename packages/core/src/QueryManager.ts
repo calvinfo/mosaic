@@ -1,17 +1,23 @@
 import { consolidator } from './QueryConsolidator.js';
-import { lruCache, voidCache } from './util/cache.js';
-import { priorityQueue } from './util/priority-queue.js';
-import { queryResult } from './util/query-result.js';
+import { lruCache, voidCache, Cache } from './util/cache';
+import { priorityQueue } from './util/priority-queue';
+import { queryResult } from './util/query-result';
+import { Manager } from './Manager';
+import { Logger } from './Logger';
 
-export const Priority = { High: 0, Normal: 1, Low: 2 };
+export enum Priority { 
+  High = 0,
+  Normal = 1,
+  Low = 2,
+};
 
-export function QueryManager() {
+export function QueryManager(): Manager {
   const queue = priorityQueue(3);
   let db;
-  let clientCache;
-  let logger;
+  let clientCache: Cache<string, any>;
+  let logger: Logger;
   let recorders = [];
-  let pending = null;
+  let pending: Promise | null = null;
   let consolidate;
 
   function next() {
@@ -32,7 +38,13 @@ export function QueryManager() {
     }
   }
 
-  async function submit(request, result) {
+  async function submit(request: {
+    query: any,
+    type: any,
+    cache: boolean,
+    record: boolean,
+    options: any,
+  }, result) {
     try {
       const { query, type, cache = false, record = true, options } = request;
       const sql = query ? `${query}` : null;
@@ -55,7 +67,7 @@ export function QueryManager() {
       // issue query, potentially cache result
       const t0 = performance.now();
       const data = await db.query({ type, sql, ...options });
-      if (cache) clientCache.set(sql, data);
+      if (cache && sql) clientCache.set(sql, data);
       logger.debug(`Request: ${(performance.now() - t0).toFixed(1)}`);
       result.fulfill(data);
     } catch (err) {
@@ -64,7 +76,7 @@ export function QueryManager() {
   }
 
   return {
-    cache(value) {
+    cache(value?: Cache<string, any> | boolean) {
       return value !== undefined
         ? (clientCache = value === true ? lruCache() : (value || voidCache()))
         : clientCache;
@@ -110,9 +122,9 @@ export function QueryManager() {
     },
 
     record() {
-      let state = [];
+      let state: string[] = [];
       const recorder = {
-        add(query) {
+        add(query: string) {
           state.push(query);
         },
         reset() {
