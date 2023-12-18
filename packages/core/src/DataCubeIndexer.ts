@@ -18,11 +18,11 @@ const identity = x => x;
  */
 export class DataCubeIndexer {
   mc: Coordinator;
-  selection?: Selection;
+  selection: Selection;
   temp: boolean;
   enabled: boolean;
   clients: any;
-  indices: Map<>;
+  indices: Map<{ }, { result: Promise<any>, table: string,  }> | null;
   activeView: any;
 
   /**
@@ -30,7 +30,7 @@ export class DataCubeIndexer {
    * @param {import('./Coordinator.js').Coordinator} mc a Mosaic coordinator
    * @param {*} options Options hash to configure the data cube indexes and pass selections to the coordinator.
    */
-  constructor(mc, { selection, temp = true }: { selection?: Selection, temp: boolean }) {
+  constructor(mc, { selection, temp = true }: { selection: Selection, temp: boolean }) {
     /** @type import('./Coordinator.js').Coordinator */
     this.mc = mc;
     this.selection = selection;
@@ -216,8 +216,8 @@ function getIndexColumns(client) {
   if (!from || !q.groupby) return NO_INDEX;
   const g = new Set(q.groupby().map(c => c.column));
 
-  const aggr = [];
-  const dims = [];
+  const aggr: { [key: string]: any }[] = [];
+  const dims: any[] = [];
   let count;
 
   for (const { as, expr: { aggregate } } of q.select()) {

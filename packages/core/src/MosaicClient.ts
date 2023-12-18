@@ -7,8 +7,7 @@ import { throttle } from './util/throttle';
  */
 export class MosaicClient {
   _filterBy?: Selection;
-  _requestUpdate: (event: any) => void;
-
+  _requestUpdate: (event?: any) => void;
 
   /**
    * Constructor.

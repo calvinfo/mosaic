@@ -6,6 +6,8 @@ type DispatchHandler = {
   queue: DispatchQueue;
 }
 
+export type DispatchQueueFilter = (value?: any) => boolean;
+
 /**
  * Event dispatcher supporting asynchronous updates.
  * If an event handler callback returns a Promise, this dispatcher will
@@ -78,7 +80,7 @@ export class AsyncDispatch {
    * @returns {(value: *) => boolean|null} A dispatch queue filter
    *  function, or null if all unemitted event values should be filtered.
    */
-  emitQueueFilter(type: string, value: any) {
+  emitQueueFilter(type: string, value: any): DispatchQueueFilter | null | undefined {
     // removes all pending items
     return null;
   }

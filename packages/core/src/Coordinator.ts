@@ -48,7 +48,7 @@ export class Coordinator {
     this.clear();
   }
 
-  logger(logger: Logger) {
+  logger(logger?: Logger): Logger {
     if (arguments.length) {
       this._logger = logger || voidLogger();
       this.manager.logger(this._logger);

@@ -1,5 +1,6 @@
 import { or } from '@uwdata/mosaic-sql';
 import { Param } from './Param';
+import { DispatchQueueFilter } from './util/AsyncDispatch';
 
 /**
  * Test if a value is a Selection instance.
@@ -174,7 +175,7 @@ export class Selection extends Param {
    * @returns {*} For value-typed events, returns a dispatch queue filter
    *  function. Otherwise returns null.
    */
-  emitQueueFilter(type: string, value: any): ((value: any) => boolean | null | undefined) | null {
+  emitQueueFilter(type: string, value: any): DispatchQueueFilter | null | undefined {
     return type === 'value'
       ? this._resolver.queueFilter(value)
       : null;
@@ -292,7 +293,7 @@ export class SelectionResolver {
   queueFilter(value: any) {
     if (this.cross) {
       const source = value.active?.source;
-      return (clauses: any): boolean | null | undefined => clauses.active?.source !== source;
+      return (clauses: any): boolean => clauses.active?.source !== source;
     }
   }
 }

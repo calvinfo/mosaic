@@ -1,7 +1,7 @@
 import { consolidator } from './QueryConsolidator.js';
 import { lruCache, voidCache, Cache } from './util/cache';
 import { priorityQueue } from './util/priority-queue';
-import { queryResult } from './util/query-result';
+import { QueryResult, queryResult } from './util/query-result';
 import { Manager } from './Manager';
 import { Logger } from './Logger';
 
@@ -11,18 +11,33 @@ export enum Priority {
   Low = 2,
 };
 
+export interface Recorder {
+  add(query: string): void;
+  reset(): void;
+  snapshot(): void;
+  stop(): void;
+}
+
+export interface QueryRequest {
+  query: any,
+  type: any,
+  cache: boolean,
+  record: boolean,
+  options: any,
+}
+
 export function QueryManager(): Manager {
-  const queue = priorityQueue(3);
+  const queue = priorityQueue<{ request: QueryRequest, result: QueryResult<any> }>(3);
   let db;
   let clientCache: Cache<string, any>;
   let logger: Logger;
-  let recorders = [];
-  let pending: Promise | null = null;
+  let recorders: Recorder[] = [];
+  let pending: Promise<any> | null = null;
   let consolidate;
 
   function next() {
     if (pending || queue.isEmpty()) return;
-    const { request, result } = queue.next();
+    const { request, result } = queue.next()!;
     pending = submit(request, result);
     pending.finally(() => { pending = null; next(); });
   }
@@ -38,13 +53,7 @@ export function QueryManager(): Manager {
     }
   }
 
-  async function submit(request: {
-    query: any,
-    type: any,
-    cache: boolean,
-    record: boolean,
-    options: any,
-  }, result) {
+  async function submit(request: QueryRequest, result: QueryResult<any>): Promise<any> {
     try {
       const { query, type, cache = false, record = true, options } = request;
       const sql = query ? `${query}` : null;
@@ -60,7 +69,6 @@ export function QueryManager(): Manager {
         if (cached) {
           logger.debug('Cache');
           result.fulfill(cached);
-          return;
         }
       }
 
