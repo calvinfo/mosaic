@@ -1,4 +1,4 @@
-import { literalToSQL } from "../to-sql";
+import { literalToSQL } from '../to-sql';
 
 /**
  * Generates SQL from a set of objects and optionally maps them to new column
@@ -25,7 +25,7 @@ export function sqlFrom(
     keys = Object.keys(columns);
   }
   if (!keys.length) {
-    throw new Error("Can not create table from empty column set.");
+    throw new Error('Can not create table from empty column set.');
   }
   const subq: string[] = [];
   const columnMap = columns as { [key: string]: string };
@@ -33,7 +33,7 @@ export function sqlFrom(
     const sel = keys.map(
       (k) => `${literalToSQL(datum[k])} AS "${columnMap[k]}"`
     );
-    subq.push(`(SELECT ${sel.join(", ")})`);
+    subq.push(`(SELECT ${sel.join(', ')})`);
   }
-  return subq.join(" UNION ALL ");
+  return subq.join(' UNION ALL ');
 }

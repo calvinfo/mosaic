@@ -1,5 +1,5 @@
-import { sql } from "./expression";
-import { Ref, asColumn } from "./ref";
+import { sql } from './expression';
+import { Ref, asColumn } from './ref';
 
 function visit(
   this: {
@@ -19,41 +19,41 @@ function visit(
 
 function logical(op: string, clauses: any[]) {
   const children = clauses.filter((x) => x != null).map(asColumn);
-  const strings = children.map((c, i) => (i ? ` ${op} ` : ""));
+  const strings = children.map((c, i) => (i ? ` ${op} ` : ''));
   if (children.length === 1) {
-    strings.push("");
+    strings.push('');
   } else if (children.length > 1) {
-    strings[0] = "(";
-    strings.push(")");
+    strings[0] = '(';
+    strings.push(')');
   }
   return sql(strings, ...children).annotate({ op, children, visit });
 }
 
-export const and = (...clauses: any[]) => logical("AND", clauses.flat());
-export const or = (...clauses: any[]) => logical("OR", clauses.flat());
+export const and = (...clauses: any[]) => logical('AND', clauses.flat());
+export const or = (...clauses: any[]) => logical('OR', clauses.flat());
 
 const unaryOp = (op: string) => (a: string | Ref) =>
   sql`(${op} ${asColumn(a)})`.annotate({ op, a, visit });
 
-export const not = unaryOp("NOT");
+export const not = unaryOp('NOT');
 
 const unaryPostOp = (op: string) => (a: string | Ref) =>
   sql`(${asColumn(a)} ${op})`.annotate({ op, a, visit });
 
-export const isNull = unaryPostOp("IS NULL");
-export const isNotNull = unaryPostOp("IS NOT NULL");
+export const isNull = unaryPostOp('IS NULL');
+export const isNotNull = unaryPostOp('IS NOT NULL');
 
 const binaryOp = (op: string) => (a: any, b: any) =>
   sql`(${asColumn(a)} ${op} ${asColumn(b)})`.annotate({ op, a, b, visit });
 
-export const eq = binaryOp("=");
-export const neq = binaryOp("<>");
-export const lt = binaryOp("<");
-export const gt = binaryOp(">");
-export const lte = binaryOp("<=");
-export const gte = binaryOp(">=");
-export const isDistinct = binaryOp("IS DISTINCT FROM");
-export const isNotDistinct = binaryOp("IS NOT DISTINCT FROM");
+export const eq = binaryOp('=');
+export const neq = binaryOp('<>');
+export const lt = binaryOp('<');
+export const gt = binaryOp('>');
+export const lte = binaryOp('<=');
+export const gte = binaryOp('>=');
+export const isDistinct = binaryOp('IS DISTINCT FROM');
+export const isNotDistinct = binaryOp('IS NOT DISTINCT FROM');
 
 function rangeOp(
   op: string,
@@ -62,7 +62,7 @@ function rangeOp(
   exclusive?: boolean
 ) {
   a = asColumn(a);
-  const prefix = op.startsWith("NOT ") ? "NOT " : "";
+  const prefix = op.startsWith('NOT ') ? 'NOT ' : '';
   const expr = !range
     ? sql``
     : exclusive
@@ -75,9 +75,9 @@ export const isBetween = (
   a: string | Ref,
   range?: [any, any] | null,
   exclusive?: boolean
-) => rangeOp("BETWEEN", a, range, exclusive);
+) => rangeOp('BETWEEN', a, range, exclusive);
 export const isNotBetween = (
   a: string | Ref,
   range?: [any, any] | null,
   exclusive?: boolean
-) => rangeOp("NOT BETWEEN", a, range, exclusive);
+) => rangeOp('NOT BETWEEN', a, range, exclusive);

@@ -1,5 +1,5 @@
-import { isSQLExpression, SQLExpression } from "./expression";
-import { asColumn, asRelation, isColumnRefFor, Ref } from "./ref";
+import { isSQLExpression, SQLExpression } from './expression';
+import { asColumn, asRelation, isColumnRefFor, Ref } from './ref';
 
 export type Sample = {
   rows?: number;
@@ -49,19 +49,19 @@ export class Query {
   }
 
   static union(...queries: Query[]) {
-    return new SetOperation("UNION", queries.flat());
+    return new SetOperation('UNION', queries.flat());
   }
 
   static unionAll(...queries: Query[]) {
-    return new SetOperation("UNION ALL", queries.flat());
+    return new SetOperation('UNION ALL', queries.flat());
   }
 
   static intersect(...queries: Query[]) {
-    return new SetOperation("INTERSECT", queries.flat());
+    return new SetOperation('INTERSECT', queries.flat());
   }
 
   static except(...queries: Query[]) {
-    return new SetOperation("EXCEPT", queries.flat());
+    return new SetOperation('EXCEPT', queries.flat());
   }
 
   constructor() {
@@ -112,7 +112,7 @@ export class Query {
       expr.flat().forEach((e) => {
         if (e == null) {
           // do nothing
-        } else if (e.as && e.query && typeof e.as === "string") {
+        } else if (e.as && e.query && typeof e.as === 'string') {
           add(e.as, e.query);
         } else {
           for (const as in e) {
@@ -140,7 +140,7 @@ export class Query {
       for (const e of expr.flat()) {
         if (e == null) {
           // do nothing
-        } else if (typeof e === "string") {
+        } else if (typeof e === 'string') {
           list.push({ as: e, expr: asColumn(e) });
         } else if (e instanceof Ref) {
           list.push({ as: e.column!, expr: e });
@@ -182,7 +182,7 @@ export class Query {
       expr.flat().forEach((e) => {
         if (e == null) {
           // do nothing
-        } else if (typeof e === "string") {
+        } else if (typeof e === 'string') {
           list.push({ as: e, from: asRelation(e) });
         } else if (e instanceof Ref) {
           list.push({ as: e.table, from: e });
@@ -215,7 +215,7 @@ export class Query {
       return query.sample;
     } else {
       let spec = value;
-      if (typeof value === "number") {
+      if (typeof value === 'number') {
         spec =
           value > 0 && value < 1
             ? { perc: 100 * value, method }
@@ -401,14 +401,14 @@ export class Query {
     // WITH
     if (cte.length) {
       const list = cte.map(({ as, query }) => `"${as}" AS (${query})`);
-      sql.push(`WITH ${list.join(", ")}`);
+      sql.push(`WITH ${list.join(', ')}`);
     }
 
     // SELECT
     const sels = select.map(({ as, expr }) =>
       isColumnRefFor(expr, as) && !expr.table ? `${expr}` : `${expr} AS "${as}"`
     );
-    sql.push(`SELECT${distinct ? " DISTINCT" : ""} ${sels.join(", ")}`);
+    sql.push(`SELECT${distinct ? ' DISTINCT' : ''} ${sels.join(', ')}`);
 
     // FROM
     if (from.length) {
@@ -416,7 +416,7 @@ export class Query {
         const rel = isQuery(from) ? `(${from})` : `${from}`;
         return !as || as === (from as Ref).table ? rel : `${rel} AS "${as}"`;
       });
-      sql.push(`FROM ${rels.join(", ")}`);
+      sql.push(`FROM ${rels.join(', ')}`);
     }
 
     // WHERE
@@ -424,7 +424,7 @@ export class Query {
       const clauses = where
         .map(String)
         .filter((x) => x)
-        .join(" AND ");
+        .join(' AND ');
       if (clauses) sql.push(`WHERE ${clauses}`);
     }
 
@@ -433,14 +433,14 @@ export class Query {
       const { rows, perc, method, seed } = sample;
       const size = rows ? `${rows} ROWS` : `${perc} PERCENT`;
       const how = method
-        ? ` (${method}${seed != null ? `, ${seed}` : ""})`
-        : "";
+        ? ` (${method}${seed != null ? `, ${seed}` : ''})`
+        : '';
       sql.push(`USING SAMPLE ${size}${how}`);
     }
 
     // GROUP BY
     if (groupby.length) {
-      sql.push(`GROUP BY ${groupby.join(", ")}`);
+      sql.push(`GROUP BY ${groupby.join(', ')}`);
     }
 
     // HAVING
@@ -448,14 +448,14 @@ export class Query {
       const clauses = having
         .map(String)
         .filter((x) => x)
-        .join(" AND ");
+        .join(' AND ');
       if (clauses) sql.push(`HAVING ${clauses}`);
     }
 
     // WINDOW
     if (window.length) {
       const windows = window.map(({ as, expr }) => `"${as}" AS (${expr})`);
-      sql.push(`WINDOW ${windows.join(", ")}`);
+      sql.push(`WINDOW ${windows.join(', ')}`);
     }
 
     // QUALIFY
@@ -463,13 +463,13 @@ export class Query {
       const clauses = qualify
         .map(String)
         .filter((x) => x)
-        .join(" AND ");
+        .join(' AND ');
       if (clauses) sql.push(`QUALIFY ${clauses}`);
     }
 
     // ORDER BY
     if (orderby.length) {
-      sql.push(`ORDER BY ${orderby.join(", ")}`);
+      sql.push(`ORDER BY ${orderby.join(', ')}`);
     }
 
     // LIMIT
@@ -482,7 +482,7 @@ export class Query {
       sql.push(`OFFSET ${offset}`);
     }
 
-    return sql.join(" ");
+    return sql.join(' ');
   }
 }
 
@@ -566,7 +566,7 @@ export class SetOperation {
 
     // ORDER BY
     if (orderby.length) {
-      sql.push(`ORDER BY ${orderby.join(", ")}`);
+      sql.push(`ORDER BY ${orderby.join(', ')}`);
     }
 
     // LIMIT
@@ -579,7 +579,7 @@ export class SetOperation {
       sql.push(`OFFSET ${offset}`);
     }
 
-    return sql.join(" ");
+    return sql.join(' ');
   }
 }
 

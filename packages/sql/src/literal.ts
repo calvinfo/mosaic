@@ -1,4 +1,4 @@
-import { literalToSQL } from "./to-sql";
+import { literalToSQL } from './to-sql';
 
 export const literal = (value: any) => ({
   value,

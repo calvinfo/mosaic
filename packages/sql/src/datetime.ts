@@ -1,5 +1,5 @@
-import { sql } from "./expression";
-import { asColumn } from "./ref";
+import { sql } from './expression';
+import { asColumn } from './ref';
 
 export const epoch_ms = (expr: any) => {
   const d = asColumn(expr);
@@ -8,17 +8,17 @@ export const epoch_ms = (expr: any) => {
 
 export const dateMonth = (expr: any) => {
   const d = asColumn(expr);
-  return sql`MAKE_DATE(2012, MONTH(${d}), 1)`.annotate({ label: "month" });
+  return sql`MAKE_DATE(2012, MONTH(${d}), 1)`.annotate({ label: 'month' });
 };
 
 export const dateMonthDay = (expr: any) => {
   const d = asColumn(expr);
   return sql`MAKE_DATE(2012, MONTH(${d}), DAY(${d}))`.annotate({
-    label: "date",
+    label: 'date',
   });
 };
 
 export const dateDay = (expr: any) => {
   const d = asColumn(expr);
-  return sql`MAKE_DATE(2012, 1, DAY(${d}))`.annotate({ label: "date" });
+  return sql`MAKE_DATE(2012, 1, DAY(${d}))`.annotate({ label: 'date' });
 };

@@ -1,5 +1,5 @@
-import { SQLExpression, sql } from "./expression";
-import { Ref, asColumn } from "./ref";
+import { SQLExpression, sql } from './expression';
+import { Ref, asColumn } from './ref';
 
 /**
  * Annotate an expression to indicate descending sort order.

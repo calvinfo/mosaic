@@ -1,16 +1,16 @@
-import { SQLExpression, sql } from "./expression";
-import { asColumn } from "./ref";
+import { SQLExpression, sql } from './expression';
+import { asColumn } from './ref';
 
 export function cast(expr: any, type: string): SQLExpression {
   const arg = asColumn(expr);
   const e = sql`CAST(${arg} AS ${type})`;
-  Object.defineProperty(e, "label", {
+  Object.defineProperty(e, 'label', {
     enumerable: true,
     get() {
       return expr.label;
     },
   });
-  Object.defineProperty(e, "aggregate", {
+  Object.defineProperty(e, 'aggregate', {
     enumerable: true,
     get() {
       return expr.aggregate || false;
@@ -19,5 +19,5 @@ export function cast(expr: any, type: string): SQLExpression {
   return e;
 }
 
-export const castDouble = (expr: any) => cast(expr, "DOUBLE");
-export const castInteger = (expr: any) => cast(expr, "INTEGER");
+export const castDouble = (expr: any) => cast(expr, 'DOUBLE');
+export const castInteger = (expr: any) => cast(expr, 'INTEGER');

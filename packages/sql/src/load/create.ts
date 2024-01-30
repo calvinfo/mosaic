@@ -12,13 +12,13 @@ export function create(
   }
 ) {
   return (
-    "CREATE" +
-    (replace ? " OR REPLACE " : " ") +
-    (temp ? "TEMP " : "") +
-    (view ? "VIEW" : "TABLE") +
-    (replace ? " " : " IF NOT EXISTS ") +
+    'CREATE' +
+    (replace ? ' OR REPLACE ' : ' ') +
+    (temp ? 'TEMP ' : '') +
+    (view ? 'VIEW' : 'TABLE') +
+    (replace ? ' ' : ' IF NOT EXISTS ') +
     name +
-    " AS " +
+    ' AS ' +
     query
   );
 }

@@ -31,10 +31,10 @@ export class Ref {
   toString() {
     const { table, column } = this;
     if (column) {
-      const col = column.startsWith("*") ? column : `"${column}"`;
-      return `${table ? `${quoteTableName(table)}.` : ""}${col}`;
+      const col = column.startsWith('*') ? column : `"${column}"`;
+      return `${table ? `${quoteTableName(table)}.` : ''}${col}`;
     } else {
-      return table ? quoteTableName(table) : "NULL";
+      return table ? quoteTableName(table) : 'NULL';
     }
   }
 }
@@ -45,8 +45,8 @@ export class Ref {
  * @returns The quoted table name.
  */
 function quoteTableName(table: string) {
-  const pieces = table.split(".");
-  return pieces.map((p) => `"${p}"`).join(".");
+  const pieces = table.split('.');
+  return pieces.map((p) => `"${p}"`).join('.');
 }
 
 /**
@@ -67,7 +67,7 @@ export function isColumnRefFor(ref: any, name: string): boolean {
  * @returns {*} A column reference or the input value.
  */
 export function asColumn(value: any): any {
-  return typeof value === "string" ? column(value) : value;
+  return typeof value === 'string' ? column(value) : value;
 }
 
 /**
@@ -77,7 +77,7 @@ export function asColumn(value: any): any {
  * @returns {*} A table reference or the input value.
  */
 export function asRelation(value: string | Ref): Ref {
-  return typeof value === "string" ? relation(value) : value;
+  return typeof value === 'string' ? relation(value) : value;
 }
 
 /**
@@ -98,7 +98,7 @@ export function relation(name: string): Ref {
 export function column(table: string, column: string): Ref;
 export function column(column: string): Ref;
 export function column(tableOrColumn: string, column?: string): Ref {
-  if (typeof column === "string") {
+  if (typeof column === 'string') {
     // Called with two arguments: table and column
     return new Ref(tableOrColumn, column);
   } else {
@@ -113,5 +113,5 @@ export function column(tableOrColumn: string, column?: string): Ref {
  * @returns {Ref} The generated reference.
  */
 export function all(table: string): Ref {
-  return new Ref(table, "*");
+  return new Ref(table, '*');
 }

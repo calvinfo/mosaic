@@ -1,8 +1,8 @@
-import { Ref } from "./ref";
-import { literalToSQL } from "./to-sql";
+import { Ref } from './ref';
+import { literalToSQL } from './to-sql';
 
 export interface Param {
-  addEventListener(type: "value", callback: (a: SQLExpression) => void): void;
+  addEventListener(type: 'value', callback: (a: SQLExpression) => void): void;
   value?: any;
   update(value: any): void;
 }
@@ -13,7 +13,7 @@ export interface Param {
  * @returns True if the value is param-like, false otherwise.
  */
 export const isParamLike = (value: any): boolean =>
-  typeof value?.addEventListener === "function";
+  typeof value?.addEventListener === 'function';
 
 /**
  * Test if a value is a SQL expression instance.
@@ -69,8 +69,8 @@ export class SQLExpression {
     if (params.length > 0) {
       this._params = Array.from(new Set(params));
       this._params.forEach((param) => {
-        param.addEventListener("value", () =>
-          update(this, this._map?.get("value"))
+        param.addEventListener('value', () =>
+          update(this, this._map?.get('value'))
         );
       });
       this.addEventListener = (type, callback) => {
@@ -145,7 +145,7 @@ export class SQLExpression {
           ? literalToSQL((p as unknown as Param).value)
           : p
       )
-      .join("");
+      .join('');
   }
 }
 
@@ -170,7 +170,7 @@ export function parseSQL(
       if (Array.isArray((e as SQLExpression)?.columns)) {
         (e as SQLExpression).columns.forEach((col) => cols.add(col));
       }
-      spans[k] += typeof e === "string" ? e : literalToSQL(e);
+      spans[k] += typeof e === 'string' ? e : literalToSQL(e);
     }
     const s = strings[++i];
     if (isParamLike(spans[k])) {
