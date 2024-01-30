@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { avg, cast, castDouble, castInteger, column } from '../src/index.js';
+import { avg, cast, castDouble, castInteger, column } from '../src/index';
 
 describe('cast', () => {
   it('performs type casts', () => {

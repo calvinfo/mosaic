@@ -5,7 +5,7 @@ import {
   eq, neq, lt, gt, lte, gte,
   isDistinct, isNotDistinct,
   isBetween, isNotBetween
-} from '../src/index.js';
+} from '../src/index';
 
 describe('Logical operators', () => {
   it('include AND expressions', () => {

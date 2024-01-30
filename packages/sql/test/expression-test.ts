@@ -1,6 +1,6 @@
 import assert from 'node:assert';
-import { stubParam } from './stub-param.js';
-import { column, isSQLExpression, isParamLike, sql } from '../src/index.js';
+import { stubParam } from './stub-param';
+import { column, isSQLExpression, isParamLike, sql } from '../src/index';
 
 describe('sql template tag', () => {
   it('creates basic SQL expressions', () => {
@@ -42,7 +42,7 @@ describe('sql template tag', () => {
     assert.strictEqual(expr.column, 'foo');
     assert.deepStrictEqual(expr.columns, ['foo']);
 
-    expr.addEventListener('value', value => {
+    expr.addEventListener!('value', value => {
       assert.ok(isSQLExpression(value));
       assert.strictEqual(String(expr), `${value}`);
     });
@@ -62,7 +62,7 @@ describe('sql template tag', () => {
     assert.strictEqual(expr.column, 'foo');
     assert.deepStrictEqual(expr.columns, ['foo']);
 
-    expr.addEventListener('value', value => {
+    expr.addEventListener!('value', value => {
       assert.ok(isSQLExpression(value));
       assert.strictEqual(String(expr), `${value}`);
     });

@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import {
   column, desc, gt, lt, max, min, relation, sql, Query
-} from '../src/index.js';
+} from '../src/index';
 
 describe('Query', () => {
   it('selects column name strings', () => {

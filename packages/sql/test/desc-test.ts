@@ -1,6 +1,7 @@
 import assert from 'node:assert';
-import { stubParam } from './stub-param.js';
-import { column, desc, isSQLExpression, isParamLike } from '../src/index.js';
+import { stubParam } from './stub-param';
+import { column, desc, isSQLExpression, isParamLike } from '../src/index';
+import { SQLExpression } from '../src/expression';
 
 describe('desc', () => {
   it('creates descending order annotations', () => {
@@ -12,12 +13,12 @@ describe('desc', () => {
     assert.deepStrictEqual(expr.columns, ['foo']);
 
     const param = stubParam(column('bar'));
-    const expr2 = desc(param);
+    const expr2 = desc(param as unknown as SQLExpression);
     assert.ok(isSQLExpression(expr2));
     assert.ok(isParamLike(expr2));
     assert.strictEqual(String(expr2), '"bar" DESC NULLS LAST');
 
-    expr2.addEventListener('value', value => {
+    expr2.addEventListener!('value', value => {
       assert.ok(isSQLExpression(value));
       assert.strictEqual(String(expr2), `${value}`);
     });

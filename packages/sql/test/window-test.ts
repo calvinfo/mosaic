@@ -1,10 +1,10 @@
 import assert from 'node:assert';
-import { stubParam } from './stub-param.js';
+import { stubParam } from './stub-param';
 import {
   column, desc, isParamLike, isSQLExpression,
   row_number, rank, dense_rank, percent_rank, cume_dist,
   ntile, lag, lead, first_value, last_value, nth_value
-} from '../src/index.js';
+} from '../src/index';
 
 describe('Window functions', () => {
   it('expose metadata', () => {
@@ -87,7 +87,7 @@ describe('Window functions', () => {
     assert.strictEqual(expr.column, 'bar');
     assert.deepStrictEqual(expr.columns, ['bar']);
 
-    expr.addEventListener('value', value => {
+    expr.addEventListener!('value', value => {
       assert.ok(isSQLExpression(value));
       assert.strictEqual(String(expr), `${value}`);
     });

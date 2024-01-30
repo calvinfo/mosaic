@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { stubParam } from './stub-param.js';
+import { stubParam } from './stub-param';
 import {
   agg, column, isSQLExpression, isParamLike,
   argmax, argmin, arrayAgg, avg, corr, count, covarPop, entropy, first,
@@ -7,7 +7,7 @@ import {
   regrAvgX, regrAvgY, regrCount, regrIntercept, regrR2, regrSXX, regrSXY,
   regrSYY, regrSlope, skewness, stddev, stddevPop, stringAgg, sum,
   variance, varPop, sql
-} from '../src/index.js';
+} from '../src/index';
 
 describe('agg template tag', () => {
   it('creates aggregate SQL expressions', () => {

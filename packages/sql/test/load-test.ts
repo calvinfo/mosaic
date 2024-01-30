@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { loadCSV } from '../src/index.js';
+import { loadCSV } from '../src/index';
 
 describe('loadCSV', () => {
   it('accepts query options', () => {

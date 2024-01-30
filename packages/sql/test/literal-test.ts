@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { literal } from '../src/index.js';
+import { literal } from '../src/index';
 
 describe('literal', () => {
   it('handles booleans', () => {

@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import {
   contains, isFinite, isInfinite, isNaN, literal, length,
   lower, prefix, regexp_matches, suffix, upper
-} from '../src/index.js';
+} from '../src/index';
 
 describe('Function calls', () => {
   it('includes REGEXP_MATCHES', () => {
