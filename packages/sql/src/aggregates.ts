@@ -1,15 +1,15 @@
-import { SQLExpression, parseSQL, sql } from './expression.js';
-import { asColumn } from './ref.js';
-import { repeat } from './repeat.js';
-import { literalToSQL } from './to-sql.js';
-import { WindowFunction } from './windows.js';
+import { SQLExpression, parseSQL, sql } from "./expression";
+import { asColumn } from "./ref";
+import { repeat } from "./repeat";
+import { literalToSQL } from "./to-sql";
+import { WindowFunction } from "./windows";
 
 /**
  * Tag function for SQL aggregate expressions. Interpolated values
  * may be strings, other SQL expression objects (such as column
  * references), or parameterized values.
  */
-export function agg(strings, ...exprs) {
+export function agg(strings: any, ...exprs: any[]) {
   return sql(strings, ...exprs).annotate({ aggregate: true });
 }
 
@@ -19,22 +19,39 @@ export function agg(strings, ...exprs) {
  * rather than instantiate this class.
  */
 export class AggregateFunction extends SQLExpression {
-  constructor(op, args, type, isDistinct, filter) {
+  isDistinct: boolean;
+  filter: SQLExpression | null;
+  type: string | null;
+  aggregate: string;
+  args: SQLExpression[];
+
+  constructor(
+    op: string,
+    args: any[],
+    type: string | null = null,
+    isDistinct?: boolean,
+    filter?: SQLExpression | null
+  ) {
     args = (args || []).map(asColumn);
     const { strings, exprs } = aggExpr(op, args, type, isDistinct, filter);
     const { spans, cols } = parseSQL(strings, exprs);
-    super(spans, cols, { aggregate: op, args, type, isDistinct, filter });
+    super(spans, cols);
+    this.aggregate = op;
+    this.args = args;
+    this.type = type;
+    this.isDistinct = isDistinct || false;
+    this.filter = filter || null;
+
+    // generate the label
+    const dist = this.isDistinct ? "DISTINCT " : "";
+    const tail = this.args.length
+      ? `(${dist}${this.args.map(unquoted).join(", ")})`
+      : "";
+    this.label = `${op.toLowerCase()}${tail}`;
   }
 
   get basis() {
     return this.column;
-  }
-
-  get label() {
-    const { aggregate: op, args, isDistinct } = this;
-    const dist = isDistinct ? 'DISTINCT' + (args.length ? ' ' : '') : '';
-    const tail = args.length ? `(${dist}${args.map(unquoted).join(', ')})` : '';
-    return `${op.toLowerCase()}${tail}`;
   }
 
   distinct() {
@@ -42,7 +59,7 @@ export class AggregateFunction extends SQLExpression {
     return new AggregateFunction(op, args, type, true, filter);
   }
 
-  where(filter) {
+  where(filter: SQLExpression | null) {
     const { aggregate: op, args, type, isDistinct } = this;
     return new AggregateFunction(op, args, type, isDistinct, filter);
   }
@@ -53,86 +70,92 @@ export class AggregateFunction extends SQLExpression {
     return new WindowFunction(op, func, type);
   }
 
-  partitionby(...expr) {
+  partitionby(...expr: any[]) {
     return this.window().partitionby(...expr);
   }
 
-  orderby(...expr) {
+  orderby(...expr: any[]) {
     return this.window().orderby(...expr);
   }
 
-  rows(prev, next) {
-    return this.window().rows(prev, next);
+  rows([start, end]: [any, any]) {
+    return this.window().rows([start, end]);
   }
 
-  range(prev, next) {
-    return this.window().range(prev, next);
+  range([start, end]: [any, any]) {
+    return this.window().range([start, end]);
   }
 }
 
-function aggExpr(op, args, type, isDistinct, filter) {
-  const close = `)${type ? `::${type}` : ''}`;
-  let strings = [`${op}(${isDistinct ? 'DISTINCT ' :''}`];
-  let exprs = [];
+function aggExpr(
+  op: string,
+  args: string[],
+  type: string | null = null,
+  isDistinct?: boolean,
+  filter?: SQLExpression | null
+) {
+  const close = `)${type ? `::${type}` : ""}`;
+  let strings = [`${op}(${isDistinct ? "DISTINCT " : ""}`];
+  let exprs: (string | SQLExpression)[] = [];
   if (args.length) {
     strings = strings.concat([
-      ...repeat(args.length - 1, ', '),
-      `${close}${filter ? ' FILTER (WHERE ' : ''}`,
-      ...(filter ? [')'] : [])
+      ...repeat(args.length - 1, ", "),
+      `${close}${filter ? " FILTER (WHERE " : ""}`,
+      ...(filter ? [")"] : []),
     ]);
     exprs = [...args, ...(filter ? [filter] : [])];
   } else {
-    strings[0] += '*' + close;
+    strings[0] += "*" + close;
   }
   return { exprs, strings };
 }
 
-function unquoted(value) {
+function unquoted(value: any) {
   const s = literalToSQL(value);
-  return s && s.startsWith('"') && s.endsWith('"') ? s.slice(1, -1) : s
+  return s && s.startsWith('"') && s.endsWith('"') ? s.slice(1, -1) : s;
 }
 
-function aggf(op, type) {
-  return (...args) => new AggregateFunction(op, args, type);
+function aggf(op: string, type?: string) {
+  return (...args: any) => new AggregateFunction(op, args, type);
 }
 
-export const count = aggf('COUNT', 'INTEGER');
-export const avg = aggf('AVG');
-export const mean = aggf('AVG');
-export const mad = aggf('MAD');
-export const max = aggf('MAX');
-export const min = aggf('MIN');
-export const sum = aggf('SUM', 'DOUBLE');
-export const product = aggf('PRODUCT');
-export const median = aggf('MEDIAN');
-export const quantile = aggf('QUANTILE');
-export const mode = aggf('MODE');
+export const count = aggf("COUNT", "INTEGER");
+export const avg = aggf("AVG");
+export const mean = aggf("AVG");
+export const mad = aggf("MAD");
+export const max = aggf("MAX");
+export const min = aggf("MIN");
+export const sum = aggf("SUM", "DOUBLE");
+export const product = aggf("PRODUCT");
+export const median = aggf("MEDIAN");
+export const quantile = aggf("QUANTILE");
+export const mode = aggf("MODE");
 
-export const variance = aggf('VARIANCE');
-export const stddev = aggf('STDDEV');
-export const skewness = aggf('SKEWNESS');
-export const kurtosis = aggf('KURTOSIS');
-export const entropy = aggf('ENTROPY');
-export const varPop = aggf('VAR_POP');
-export const stddevPop = aggf('STDDEV_POP');
+export const variance = aggf("VARIANCE");
+export const stddev = aggf("STDDEV");
+export const skewness = aggf("SKEWNESS");
+export const kurtosis = aggf("KURTOSIS");
+export const entropy = aggf("ENTROPY");
+export const varPop = aggf("VAR_POP");
+export const stddevPop = aggf("STDDEV_POP");
 
-export const corr = aggf('CORR');
-export const covarPop = aggf('COVAR_POP');
-export const regrIntercept = aggf('REGR_INTERCEPT');
-export const regrSlope = aggf('REGR_SLOPE');
-export const regrCount = aggf('REGR_COUNT');
-export const regrR2 = aggf('REGR_R2');
-export const regrSYY = aggf('REGR_SYY');
-export const regrSXX = aggf('REGR_SXX');
-export const regrSXY = aggf('REGR_SXY');
-export const regrAvgX = aggf('REGR_AVGX');
-export const regrAvgY = aggf('REGR_AVGY');
+export const corr = aggf("CORR");
+export const covarPop = aggf("COVAR_POP");
+export const regrIntercept = aggf("REGR_INTERCEPT");
+export const regrSlope = aggf("REGR_SLOPE");
+export const regrCount = aggf("REGR_COUNT");
+export const regrR2 = aggf("REGR_R2");
+export const regrSYY = aggf("REGR_SYY");
+export const regrSXX = aggf("REGR_SXX");
+export const regrSXY = aggf("REGR_SXY");
+export const regrAvgX = aggf("REGR_AVGX");
+export const regrAvgY = aggf("REGR_AVGY");
 
-export const first = aggf('FIRST');
-export const last = aggf('LAST');
+export const first = aggf("FIRST");
+export const last = aggf("LAST");
 
-export const argmin = aggf('ARG_MIN');
-export const argmax = aggf('ARG_MAX');
+export const argmin = aggf("ARG_MIN");
+export const argmax = aggf("ARG_MAX");
 
-export const stringAgg = aggf('STRING_AGG');
-export const arrayAgg = aggf('ARRAY_AGG');
+export const stringAgg = aggf("STRING_AGG");
+export const arrayAgg = aggf("ARRAY_AGG");
