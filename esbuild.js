@@ -1,14 +1,14 @@
-import process from "node:process";
-import * as esbuild from "esbuild";
+import process from 'node:process';
+import * as esbuild from 'esbuild';
 
 const name = process.argv[2];
 const entrypoint = process.argv[3];
 
 function config(opt) {
   return {
-    entryPoints: [entrypoint ?? "src/index.js"],
-    target: ["esnext"],
-    format: "esm",
+    entryPoints: [entrypoint ?? 'src/index.js'],
+    target: ['esnext'],
+    format: 'esm',
     bundle: true,
     ...opt,
   };
